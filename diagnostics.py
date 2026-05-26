@@ -1,0 +1,210 @@
+#!/usr/bin/env python3
+"""
+SCABD Diagnostics Framework
+Comprehensive system health checks for SCABD deployment and environment validation.
+"""
+
+import os
+import sys
+import subprocess
+import json
+import datetime
+from typing import Dict, Tuple, List
+
+
+class DiagnosticsReport:
+    """Manages and generates diagnostic reports."""
+
+    def __init__(self):
+        self.checks: Dict[str, Dict] = {}
+        self.timestamp = datetime.datetime.now().isoformat()
+
+    def add_check(self, category: str, check_name: str, passed: bool, details: str = ""):
+        """Add a diagnostic check result."""
+        if category not in self.checks:
+            self.checks[category] = {}
+        self.checks[category][check_name] = {
+            "passed": passed,
+            "details": details,
+            "timestamp": datetime.datetime.now().isoformat(),
+        }
+
+    def print_status(self, component: str, success: bool, message: str = ""):
+        """Print formatted status message."""
+        status = "[ PASS ]" if success else "[ FAIL ]"
+        output = f"{status} {component}"
+        if message:
+            output += f": {message}"
+        print(output)
+
+    def print_header(self, title: str):
+        """Print formatted header."""
+        print(f"\n--- {title} ---")
+
+    def generate_json_report(self, filepath: str = None):
+        """Generate JSON report of all checks."""
+        report = {
+            "timestamp": self.timestamp,
+            "checks": self.checks,
+            "summary": self._generate_summary(),
+        }
+        if filepath:
+            with open(filepath, "w") as f:
+                json.dump(report, f, indent=2)
+            return filepath
+        return report
+
+    def _generate_summary(self) -> Dict:
+        """Generate summary statistics."""
+        total_checks = 0
+        passed_checks = 0
+        for category, checks in self.checks.items():
+            for check_name, result in checks.items():
+                total_checks += 1
+                if result["passed"]:
+                    passed_checks += 1
+        return {
+            "total_checks": total_checks,
+            "passed_checks": passed_checks,
+            "failed_checks": total_checks - passed_checks,
+            "success_rate": f"{(passed_checks / total_checks * 100):.1f}%" if total_checks > 0 else "0%",
+        }
+
+
+class SystemDiagnostics:
+    """Core system diagnostics."""
+
+    def __init__(self, report: DiagnosticsReport):
+        self.report = report
+
+    def check_python_environment(self):
+        """Verify Python version and environment."""
+        self.report.print_header("Python Environment")
+        python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        self.report.print_status("Python Version", True, f"v{python_version}")
+        self.report.add_check("System", "Python Version", True, python_version)
+
+    def check_git_and_github_cli(self):
+        """Verify Git and GitHub CLI installation."""
+        self.report.print_header("Git & GitHub CLI")
+
+        # Check Git
+        git_check = subprocess.run(
+            ["git", "--version"], capture_output=True, text=True
+        )
+        git_ok = git_check.returncode == 0
+        self.report.print_status("Git", git_ok, git_check.stdout.strip() if git_ok else "Not found")
+        self.report.add_check("VCS", "Git", git_ok, git_check.stdout.strip() if git_ok else "Not found")
+
+        # Check GitHub CLI
+        try:
+            gh_check = subprocess.run(
+                ["gh", "auth", "status"], capture_output=True, text=True
+            )
+            gh_ok = gh_check.returncode == 0
+        except FileNotFoundError:
+            gh_ok = False
+            self.report.print_status("GitHub CLI", False, "gh command not found")
+            self.report.add_check("VCS", "GitHub CLI", False, "Not installed")
+            return
+
+        gh_message = "Authenticated" if gh_ok else "Not authenticated"
+        self.report.print_status("GitHub CLI Auth", gh_ok, gh_message)
+        self.report.add_check("VCS", "GitHub CLI", gh_ok, gh_message)
+
+    def check_environment_config(self):
+        """Verify environment configuration files."""
+        self.report.print_header("Environment Configuration")
+
+        # Check .env
+        env_exists = os.path.exists(".env")
+        self.report.print_status(".env File", env_exists, "Found" if env_exists else "Not found (using .env.example)")
+        self.report.add_check("Configuration", ".env", env_exists, "Local environment file")
+
+        # Check .env.example
+        example_exists = os.path.exists(".env.example")
+        self.report.print_status(".env.example", example_exists, "Found" if example_exists else "Not found")
+        self.report.add_check("Configuration", ".env.example", example_exists, "Template environment file")
+
+        # Check LICENSE
+        license_exists = os.path.exists("LICENSE")
+        self.report.print_status("LICENSE (GPL-3.0)", license_exists, "Found" if license_exists else "Not found")
+        self.report.add_check("Configuration", "LICENSE", license_exists, "GPL-3.0 license file")
+
+    def check_network_connectivity(self):
+        """Verify network and API connectivity."""
+        self.report.print_header("Network Connectivity")
+
+        try:
+            import urllib.request
+            start_time = datetime.datetime.now()
+            urllib.request.urlopen("https://api.github.com", timeout=5)
+            duration = (datetime.datetime.now() - start_time).total_seconds()
+            self.report.print_status(
+                "GitHub API",
+                True,
+                f"Connected in {duration:.2f}s",
+            )
+            self.report.add_check("Network", "GitHub API", True, f"Connected in {duration:.2f}s")
+        except Exception as e:
+            self.report.print_status("GitHub API", False, f"Failed: {str(e)}")
+            self.report.add_check("Network", "GitHub API", False, str(e))
+
+    def check_python_dependencies(self):
+        """Verify critical Python dependencies."""
+        self.report.print_header("Python Dependencies")
+
+        critical_deps = [
+            "dotenv",
+            "requests",
+            "pandas",
+            "sqlalchemy",
+        ]
+
+        for dep in critical_deps:
+            try:
+                __import__(dep)
+                self.report.print_status(f"{dep}", True, "Installed")
+                self.report.add_check("Dependencies", dep, True, "Installed")
+            except ImportError:
+                self.report.print_status(f"{dep}", False, "Not installed")
+                self.report.add_check("Dependencies", dep, False, "Not installed")
+
+
+def main():
+    """Main diagnostics entry point."""
+    print("="*70)
+    print("       SCABD SYSTEM DIAGNOSTICS & VALIDATION FRAMEWORK")
+    print("="*70)
+
+    report = DiagnosticsReport()
+    diagnostics = SystemDiagnostics(report)
+
+    # Run all checks
+    diagnostics.check_python_environment()
+    diagnostics.check_git_and_github_cli()
+    diagnostics.check_environment_config()
+    diagnostics.check_network_connectivity()
+    diagnostics.check_python_dependencies()
+
+    # Print summary
+    summary = report._generate_summary()
+    print("\n" + "="*70)
+    print("DIAGNOSTIC SUMMARY")
+    print("="*70)
+    print(f"Total Checks: {summary['total_checks']}")
+    print(f"Passed: {summary['passed_checks']}")
+    print(f"Failed: {summary['failed_checks']}")
+    print(f"Success Rate: {summary['success_rate']}")
+
+    # Generate JSON report
+    report_path = report.generate_json_report("diagnostics_report.json")
+    print(f"\nDetailed report saved to: {report_path}")
+    print("="*70)
+
+    # Exit with appropriate code
+    return 0 if summary["failed_checks"] == 0 else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

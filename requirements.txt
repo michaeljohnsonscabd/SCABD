@@ -1,0 +1,33 @@
+# SCABD Core Dependencies
+# GitHub Integration
+PyGithub>=2.1.1
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# Data Processing
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Database
+psycopg2-binary>=2.9.0
+SQLAlchemy>=2.0.0
+
+# Trading & Financial Data
+ccxt>=2.0.0
+yfinance>=0.2.0
+
+# Security & Encryption
+cryptography>=41.0.0
+PyJWT>=2.8.0
+
+# Utilities
+click>=8.1.0
+pydantic>=2.0.0
+
+# Development & Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-asyncio>=0.21.0
+black>=23.0.0
+flake8>=6.1.0
+mypy>=1.5.0
