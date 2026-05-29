@@ -1,0 +1,16 @@
+{
+  "agent_name": "Jules-Orchestrator",
+  "system_type": "GNU-API-First",
+  "licensing": "GPL-3.0",
+  "target_workspace": "./scabd",
+  "allowed_operations": [
+    "git-branch",
+    "pull-request-open",
+    "log-analysis",
+    "dependency-check"
+  ],
+  "monitored_paths": [
+    "./scabd/modules",
+    "./config.json"
+  ]
+}
