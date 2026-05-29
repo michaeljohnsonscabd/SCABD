@@ -9,6 +9,8 @@ import sys
 import subprocess
 import json
 import datetime
+import shutil
+import importlib.util
 from typing import Dict, Tuple, List
 
 
@@ -89,12 +91,18 @@ class SystemDiagnostics:
         self.report.print_header("Git & GitHub CLI")
 
         # Check Git
-        git_check = subprocess.run(
-            ["git", "--version"], capture_output=True, text=True
-        )
-        git_ok = git_check.returncode == 0
-        self.report.print_status("Git", git_ok, git_check.stdout.strip() if git_ok else "Not found")
-        self.report.add_check("VCS", "Git", git_ok, git_check.stdout.strip() if git_ok else "Not found")
+        try:
+            git_check = subprocess.run(
+                ["git", "--version"], capture_output=True, text=True
+            )
+            git_ok = git_check.returncode == 0
+            git_details = git_check.stdout.strip() if git_ok else "Error getting version"
+        except FileNotFoundError:
+            git_ok = False
+            git_details = "Not found"
+
+        self.report.print_status("Git", git_ok, git_details)
+        self.report.add_check("VCS", "Git", git_ok, git_details)
 
         # Check GitHub CLI
         try:
@@ -103,11 +111,9 @@ class SystemDiagnostics:
             )
             gh_ok = gh_check.returncode == 0
         except FileNotFoundError:
-            gh_ok = False
             self.report.print_status("GitHub CLI", False, "gh command not found")
             self.report.add_check("VCS", "GitHub CLI", False, "Not installed")
             return
-
         gh_message = "Authenticated" if gh_ok else "Not authenticated"
         self.report.print_status("GitHub CLI Auth", gh_ok, gh_message)
         self.report.add_check("VCS", "GitHub CLI", gh_ok, gh_message)
@@ -162,11 +168,11 @@ class SystemDiagnostics:
         ]
 
         for dep in critical_deps:
-            try:
-                __import__(dep)
+            # Bolt Optimization: Use find_spec to check for existence without loading
+            if importlib.util.find_spec(dep) is not None:
                 self.report.print_status(f"{dep}", True, "Installed")
                 self.report.add_check("Dependencies", dep, True, "Installed")
-            except ImportError:
+            else:
                 self.report.print_status(f"{dep}", False, "Not installed")
                 self.report.add_check("Dependencies", dep, False, "Not installed")
 
