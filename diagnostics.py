@@ -8,6 +8,7 @@ import os
 import sys
 import subprocess
 import json
+import importlib.util
 import datetime
 from typing import Dict, Tuple, List
 
@@ -162,11 +163,12 @@ class SystemDiagnostics:
         ]
 
         for dep in critical_deps:
-            try:
-                __import__(dep)
+            # Bolt: Use find_spec to check for dependency existence without loading the module
+            # This is faster and avoids side effects of module initialization.
+            if importlib.util.find_spec(dep) is not None:
                 self.report.print_status(f"{dep}", True, "Installed")
                 self.report.add_check("Dependencies", dep, True, "Installed")
-            except ImportError:
+            else:
                 self.report.print_status(f"{dep}", False, "Not installed")
                 self.report.add_check("Dependencies", dep, False, "Not installed")
 
