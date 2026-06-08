@@ -21,17 +21,26 @@ Specialized defense mechanism against automated threats and bot-driven attacks.
 
 class BottyGuard:
     def __init__(self):
-        self.threat_db = []
+        # Performance: Using a set for O(1) lookup in threat_db
+        self.threat_db = set()
         self.protection_active = True
 
     def monitor_traffic(self, traffic_data):
         """Monitors and filters incoming traffic for bot patterns."""
+        # Performance optimization: Early return for already blocked IPs
+        threat_ip = traffic_data.get("ip")
+        if threat_ip and threat_ip in self.threat_db:
+            return False
+
         if "bot_signature" in traffic_data:
-            self.block_threat(traffic_data["ip"])
+            self.block_threat(threat_ip)
             return False
         return True
 
     def block_threat(self, threat_ip):
         """Adds a threat to the blocklist."""
+        if not threat_ip:
+            return
         print(f"BottyGuard: Blocking suspicious threat from {threat_ip}")
-        self.threat_db.append(threat_ip)
+        # Performance: O(1) insertion in set
+        self.threat_db.add(threat_ip)
