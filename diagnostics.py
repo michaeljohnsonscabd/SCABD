@@ -7,6 +7,7 @@ Comprehensive system health checks for SCABD deployment and environment validati
 import os
 import sys
 import subprocess
+import shutil
 import json
 import importlib.util
 import datetime
@@ -89,26 +90,31 @@ class SystemDiagnostics:
         """Verify Git and GitHub CLI installation."""
         self.report.print_header("Git & GitHub CLI")
 
+        # Bolt: Use shutil.which for faster existence check before executing subprocess
         # Check Git
-        git_check = subprocess.run(
-            ["git", "--version"], capture_output=True, text=True
-        )
-        git_ok = git_check.returncode == 0
-        self.report.print_status("Git", git_ok, git_check.stdout.strip() if git_ok else "Not found")
-        self.report.add_check("VCS", "Git", git_ok, git_check.stdout.strip() if git_ok else "Not found")
+        if shutil.which("git"):
+            git_check = subprocess.run(
+                ["git", "--version"], capture_output=True, text=True
+            )
+            git_ok = git_check.returncode == 0
+            git_details = git_check.stdout.strip() if git_ok else "Error running git"
+        else:
+            git_ok = False
+            git_details = "Not found"
+
+        self.report.print_status("Git", git_ok, git_details)
+        self.report.add_check("VCS", "Git", git_ok, git_details)
 
         # Check GitHub CLI
-        try:
-            gh_check = subprocess.run(
-                ["gh", "auth", "status"], capture_output=True, text=True
-            )
-            gh_ok = gh_check.returncode == 0
-        except FileNotFoundError:
-            gh_ok = False
+        if not shutil.which("gh"):
             self.report.print_status("GitHub CLI", False, "gh command not found")
             self.report.add_check("VCS", "GitHub CLI", False, "Not installed")
             return
 
+        gh_check = subprocess.run(
+            ["gh", "auth", "status"], capture_output=True, text=True
+        )
+        gh_ok = gh_check.returncode == 0
         gh_message = "Authenticated" if gh_ok else "Not authenticated"
         self.report.print_status("GitHub CLI Auth", gh_ok, gh_message)
         self.report.add_check("VCS", "GitHub CLI", gh_ok, gh_message)
