@@ -1,0 +1,76 @@
+{
+  "timestamp": "2026-06-09T18:55:12.336134",
+  "checks": {
+    "System": {
+      "Python Version": {
+        "passed": true,
+        "details": "3.12.13",
+        "timestamp": "2026-06-09T18:55:12.336158"
+      }
+    },
+    "VCS": {
+      "Git": {
+        "passed": true,
+        "details": "git version 2.53.0",
+        "timestamp": "2026-06-09T18:55:12.340014"
+      },
+      "GitHub CLI": {
+        "passed": false,
+        "details": "Not installed",
+        "timestamp": "2026-06-09T18:55:12.351952"
+      }
+    },
+    "Configuration": {
+      ".env": {
+        "passed": false,
+        "details": "Local environment file",
+        "timestamp": "2026-06-09T18:55:12.352020"
+      },
+      ".env.example": {
+        "passed": true,
+        "details": "Template environment file",
+        "timestamp": "2026-06-09T18:55:12.352036"
+      },
+      "LICENSE": {
+        "passed": true,
+        "details": "GPL-3.0 license file",
+        "timestamp": "2026-06-09T18:55:12.352046"
+      }
+    },
+    "Network": {
+      "GitHub API": {
+        "passed": false,
+        "details": "<urlopen error timed out>",
+        "timestamp": "2026-06-09T18:55:17.485576"
+      }
+    },
+    "Dependencies": {
+      "dotenv": {
+        "passed": false,
+        "details": "Not installed",
+        "timestamp": "2026-06-09T18:55:17.485828"
+      },
+      "requests": {
+        "passed": false,
+        "details": "Not installed",
+        "timestamp": "2026-06-09T18:55:17.485928"
+      },
+      "pandas": {
+        "passed": false,
+        "details": "Not installed",
+        "timestamp": "2026-06-09T18:55:17.486018"
+      },
+      "sqlalchemy": {
+        "passed": false,
+        "details": "Not installed",
+        "timestamp": "2026-06-09T18:55:17.486113"
+      }
+    }
+  },
+  "summary": {
+    "total_checks": 11,
+    "passed_checks": 4,
+    "failed_checks": 7,
+    "success_rate": "36.4%"
+  }
+}

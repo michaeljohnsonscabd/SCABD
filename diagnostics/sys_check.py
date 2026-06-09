@@ -1,5 +1,21 @@
 import sys
 import os
+import time
+
+def get_resource_heartbeat():
+    """
+    Returns system resource usage.
+    Uses psutil if available, otherwise falls back to basic metrics.
+    """
+    try:
+        import psutil
+        cpu = psutil.cpu_percent(interval=0.1)
+        mem = psutil.virtual_memory().percent
+        return {"cpu_usage": cpu, "memory_usage": mem, "status": "OPTIMAL"}
+    except ImportError:
+        # Fallback for systems without psutil
+        # In a real Ubuntu environment, we could parse /proc/stat or /proc/meminfo
+        return {"cpu_usage": 0.0, "memory_usage": 0.0, "status": "MONITORING_LIMITED"}
 
 def run_all():
     print("==================================================")
