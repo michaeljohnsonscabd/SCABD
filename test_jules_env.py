@@ -7,6 +7,8 @@ Verifies core GNU tools, GitHub CLI state, environment variables, and secure con
 import os
 import subprocess
 import sys
+import shutil
+import time
 
 
 def print_status(component, success, message=""):
@@ -18,22 +20,29 @@ def check_gnu_and_cli():
     print("--- Checking System Utilities & GitHub CLI ---")
 
     # Test Git existence
-    git_check = subprocess.run(
-        ["git", "--version"], capture_output=True, text=True
-    )
-    print_status("Git Core", git_check.returncode == 0, git_check.stdout.strip())
+    # Bolt: Use shutil.which for faster existence check before subprocess execution
+    git_path = shutil.which("git")
+    if git_path:
+        git_check = subprocess.run(
+            [git_path, "--version"], capture_output=True, text=True
+        )
+        print_status("Git Core", git_check.returncode == 0, git_check.stdout.strip())
+    else:
+        print_status("Git Core", False, "git command not found.")
 
     # Test GitHub CLI auth status
-    try:
-        gh_check = subprocess.run(
-            ["gh", "auth", "status"], capture_output=True, text=True
-        )
-        # gh auth status returns 0 if logged in, non-zero if not
-        is_gh_authed = gh_check.returncode == 0
-    except FileNotFoundError:
-        is_gh_authed = False
+    # Bolt: Use shutil.which to avoid expensive try-except subprocess overhead
+    gh_path = shutil.which("gh")
+    if not gh_path:
         print_status("GitHub CLI", False, "gh command not found.")
         return False
+
+    gh_check = subprocess.run(
+        [gh_path, "auth", "status"], capture_output=True, text=True
+    )
+    # gh auth status returns 0 if logged in, non-zero if not
+    is_gh_authed = gh_check.returncode == 0
+
     gh_message = (
         "Authenticated successfully."
         if is_gh_authed
@@ -71,13 +80,13 @@ def test_network_and_webhooks():
     print("\n--- Testing API & Secure Connectivity ---")
     # Simulate a lightweight ping to verify DNS and basic outbound internet translation
     try:
-        import datetime
         import urllib.request
 
-        start_time = datetime.datetime.now()
+        # Bolt: Use time.perf_counter() for more precise timing than datetime.now()
+        start_time = time.perf_counter()
         # Using a reliable public standard API to verify handshake
         urllib.request.urlopen("https://api.github.com", timeout=5)
-        duration = (datetime.datetime.now() - start_time).total_seconds()
+        duration = time.perf_counter() - start_time
         print_status(
             "Outbound Network Handshake",
             True,
