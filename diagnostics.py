@@ -10,6 +10,9 @@ import subprocess
 import json
 import importlib.util
 import datetime
+import time
+import shutil
+import urllib.request
 from typing import Dict, Tuple, List
 
 
@@ -90,28 +93,47 @@ class SystemDiagnostics:
         self.report.print_header("Git & GitHub CLI")
 
         # Check Git
-        git_check = subprocess.run(
-            ["git", "--version"], capture_output=True, text=True
-        )
-        git_ok = git_check.returncode == 0
-        self.report.print_status("Git", git_ok, git_check.stdout.strip() if git_ok else "Not found")
-        self.report.add_check("VCS", "Git", git_ok, git_check.stdout.strip() if git_ok else "Not found")
+        try:
+            # Bolt Performance: Preferring LBYL (Look Before You Leap) with shutil.which
+            # for binaries that are likely to be missing in restricted environments.
+            if shutil.which("git"):
+                git_check = subprocess.run(
+                    ["git", "--version"], capture_output=True, text=True
+                )
+                git_ok = git_check.returncode == 0
+                git_details = git_check.stdout.strip() if git_ok else "Execution failed"
+            else:
+                git_ok = False
+                git_details = "Not found"
+        except Exception as e:
+            git_ok = False
+            git_details = f"Error: {str(e)}"
+
+        self.report.print_status("Git", git_ok, git_details)
+        self.report.add_check("VCS", "Git", git_ok, git_details)
 
         # Check GitHub CLI
         try:
-            gh_check = subprocess.run(
-                ["gh", "auth", "status"], capture_output=True, text=True
-            )
-            gh_ok = gh_check.returncode == 0
-        except FileNotFoundError:
+            if shutil.which("gh"):
+                gh_check = subprocess.run(
+                    ["gh", "auth", "status"], capture_output=True, text=True
+                )
+                gh_ok = gh_check.returncode == 0
+            else:
+                gh_ok = False
+        except Exception:
             gh_ok = False
-            self.report.print_status("GitHub CLI", False, "gh command not found")
-            self.report.add_check("VCS", "GitHub CLI", False, "Not installed")
-            return
 
-        gh_message = "Authenticated" if gh_ok else "Not authenticated"
-        self.report.print_status("GitHub CLI Auth", gh_ok, gh_message)
-        self.report.add_check("VCS", "GitHub CLI", gh_ok, gh_message)
+        if not gh_ok:
+            self.report.print_status("GitHub CLI", False, "gh command not found or not authenticated")
+            self.report.add_check("VCS", "GitHub CLI", False, "Not installed or unauthorized")
+            # Bolt: Removed early return to ensure subsequent checks are performed
+        else:
+            gh_message = "Authenticated"
+            self.report.print_status("GitHub CLI Auth", True, gh_message)
+            self.report.add_check("VCS", "GitHub CLI", True, gh_message)
+
+        return # Explicit return for clarity
 
     def check_environment_config(self):
         """Verify environment configuration files."""
@@ -137,10 +159,9 @@ class SystemDiagnostics:
         self.report.print_header("Network Connectivity")
 
         try:
-            import urllib.request
-            start_time = datetime.datetime.now()
+            start_time = time.perf_counter()
             urllib.request.urlopen("https://api.github.com", timeout=5)
-            duration = (datetime.datetime.now() - start_time).total_seconds()
+            duration = time.perf_counter() - start_time
             self.report.print_status(
                 "GitHub API",
                 True,
