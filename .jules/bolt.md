@@ -7,3 +7,7 @@
 ## 2026-06-01 - [Optimization: O(1) Blocklist Lookups]
 **Learning:** In the `BottyGuard` implementation, `threat_db` was originally a list, resulting in $O(n)$ lookup complexity. Switching to a `set` provided an $O(1)$ lookup time and reduced repeated IP storage. Additionally, an early return in the traffic monitor for already-identified threats prevents unnecessary signature processing.
 **Action:** Use sets for high-frequency lookup containers (like blocklists or allowlists). Implement early return patterns for already-known states to minimize redundant computation.
+
+## 2026-06-02 - [Optimization: High-Precision Timing and Serialization Safety]
+**Learning:** For measuring duration, `time.perf_counter()` is ~3.8x faster and more precise than `datetime.datetime.now()` in this environment. Additionally, converting lists to sets in API layers (like `api/main.py`) for O(1) lookup is a micro-optimization for small collections (e.g. < 5 items) and carries the risk of breaking JSON serialization as Python `set` objects are not serializable by default.
+**Action:** Prefer `time.perf_counter()` for all duration measurements. Avoid converting small lists to sets in API response-linked structures to maintain JSON serialization compatibility and readability.

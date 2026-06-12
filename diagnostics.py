@@ -9,6 +9,7 @@ import sys
 import subprocess
 import json
 import importlib.util
+import time
 import datetime
 from typing import Dict, Tuple, List
 
@@ -138,9 +139,10 @@ class SystemDiagnostics:
 
         try:
             import urllib.request
-            start_time = datetime.datetime.now()
+            # Bolt: time.perf_counter() is more precise and faster than datetime.now() for duration measurement
+            start_time = time.perf_counter()
             urllib.request.urlopen("https://api.github.com", timeout=5)
-            duration = (datetime.datetime.now() - start_time).total_seconds()
+            duration = time.perf_counter() - start_time
             self.report.print_status(
                 "GitHub API",
                 True,

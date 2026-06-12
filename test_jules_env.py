@@ -7,6 +7,7 @@ Verifies core GNU tools, GitHub CLI state, environment variables, and secure con
 import os
 import subprocess
 import sys
+import time
 
 
 def print_status(component, success, message=""):
@@ -71,13 +72,13 @@ def test_network_and_webhooks():
     print("\n--- Testing API & Secure Connectivity ---")
     # Simulate a lightweight ping to verify DNS and basic outbound internet translation
     try:
-        import datetime
         import urllib.request
 
-        start_time = datetime.datetime.now()
+        # Bolt: time.perf_counter() is more precise and faster than datetime.now() for duration measurement
+        start_time = time.perf_counter()
         # Using a reliable public standard API to verify handshake
         urllib.request.urlopen("https://api.github.com", timeout=5)
-        duration = (datetime.datetime.now() - start_time).total_seconds()
+        duration = time.perf_counter() - start_time
         print_status(
             "Outbound Network Handshake",
             True,
