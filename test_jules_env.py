@@ -7,6 +7,9 @@ Verifies core GNU tools, GitHub CLI state, environment variables, and secure con
 import os
 import subprocess
 import sys
+import time
+import shutil
+import urllib.request
 
 
 def print_status(component, success, message=""):
@@ -18,22 +21,33 @@ def check_gnu_and_cli():
     print("--- Checking System Utilities & GitHub CLI ---")
 
     # Test Git existence
-    git_check = subprocess.run(
-        ["git", "--version"], capture_output=True, text=True
-    )
-    print_status("Git Core", git_check.returncode == 0, git_check.stdout.strip())
+    # Bolt Performance: Using shutil.which is faster than subprocess.run for existence check
+    try:
+        if shutil.which("git"):
+            git_check = subprocess.run(
+                ["git", "--version"], capture_output=True, text=True
+            )
+            print_status("Git Core", git_check.returncode == 0, git_check.stdout.strip())
+        else:
+            print_status("Git Core", False, "git command not found")
+    except Exception as e:
+        print_status("Git Core", False, f"Error: {e}")
 
     # Test GitHub CLI auth status
     try:
-        gh_check = subprocess.run(
-            ["gh", "auth", "status"], capture_output=True, text=True
-        )
-        # gh auth status returns 0 if logged in, non-zero if not
-        is_gh_authed = gh_check.returncode == 0
-    except FileNotFoundError:
+        if shutil.which("gh"):
+            gh_check = subprocess.run(
+                ["gh", "auth", "status"], capture_output=True, text=True
+            )
+            # gh auth status returns 0 if logged in, non-zero if not
+            is_gh_authed = gh_check.returncode == 0
+        else:
+            is_gh_authed = False
+            print_status("GitHub CLI", False, "gh command not found.")
+    except Exception:
         is_gh_authed = False
-        print_status("GitHub CLI", False, "gh command not found.")
-        return False
+        print_status("GitHub CLI", False, "Error checking gh status.")
+
     gh_message = (
         "Authenticated successfully."
         if is_gh_authed
@@ -71,13 +85,10 @@ def test_network_and_webhooks():
     print("\n--- Testing API & Secure Connectivity ---")
     # Simulate a lightweight ping to verify DNS and basic outbound internet translation
     try:
-        import datetime
-        import urllib.request
-
-        start_time = datetime.datetime.now()
+        start_time = time.perf_counter()
         # Using a reliable public standard API to verify handshake
         urllib.request.urlopen("https://api.github.com", timeout=5)
-        duration = (datetime.datetime.now() - start_time).total_seconds()
+        duration = time.perf_counter() - start_time
         print_status(
             "Outbound Network Handshake",
             True,
