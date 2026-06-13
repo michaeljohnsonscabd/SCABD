@@ -25,7 +25,8 @@ API-first architecture implementation using FastAPI style.
 class SCABD_API:
     def __init__(self):
         self.app_name = "SCABD API"
-        self.endpoints = ["/analyze", "/shield", "/guard/status"]
+        # Performance: Using a set for O(1) endpoint lookups
+        self.endpoints = {"/analyze", "/shield", "/guard/status"}
 
     def get_status(self):
         return {"api": self.app_name, "status": "online"}
