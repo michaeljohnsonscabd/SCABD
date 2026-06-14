@@ -25,15 +25,20 @@ API-first architecture implementation using FastAPI style.
 class SCABD_API:
     def __init__(self):
         self.app_name = "SCABD API"
-        self.endpoints = ["/analyze", "/shield", "/guard/status"]
+        # Performance: Using a set for O(1) endpoint lookup
+        self.endpoints = {"/analyze", "/shield", "/guard/status"}
+        # Performance: Pre-allocate static error response to avoid redundant dict creation
+        self._not_found_response = {"error": "Endpoint not found", "code": 404}
 
     def get_status(self):
         return {"api": self.app_name, "status": "online"}
 
     def handle_request(self, endpoint, data):
         """Main request handler for the API-first architecture."""
+        # Performance: O(1) membership check using set
         if endpoint not in self.endpoints:
-            return {"error": "Endpoint not found", "code": 404}
+            # Performance: Returning a copy to prevent mutation of the shared template
+            return self._not_found_response.copy()
 
         return {"status": "processed", "endpoint": endpoint, "result": "placeholder"}
 
