@@ -21,11 +21,13 @@ def check_gnu_and_cli():
     print("--- Checking System Utilities & GitHub CLI ---")
 
     # Test Git existence
-    # Bolt Performance: Using shutil.which is faster than subprocess.run for existence check
+    # Bolt Performance: Using shutil.which to find the path once and reusing it
+    # avoids redundant path lookups in subprocess.run.
     try:
-        if shutil.which("git"):
+        git_path = shutil.which("git")
+        if git_path:
             git_check = subprocess.run(
-                ["git", "--version"], capture_output=True, text=True
+                [git_path, "--version"], capture_output=True, text=True
             )
             print_status("Git Core", git_check.returncode == 0, git_check.stdout.strip())
         else:
@@ -35,9 +37,10 @@ def check_gnu_and_cli():
 
     # Test GitHub CLI auth status
     try:
-        if shutil.which("gh"):
+        gh_path = shutil.which("gh")
+        if gh_path:
             gh_check = subprocess.run(
-                ["gh", "auth", "status"], capture_output=True, text=True
+                [gh_path, "auth", "status"], capture_output=True, text=True
             )
             # gh auth status returns 0 if logged in, non-zero if not
             is_gh_authed = gh_check.returncode == 0

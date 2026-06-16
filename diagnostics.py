@@ -94,11 +94,12 @@ class SystemDiagnostics:
 
         # Check Git
         try:
-            # Bolt Performance: Preferring LBYL (Look Before You Leap) with shutil.which
-            # for binaries that are likely to be missing in restricted environments.
-            if shutil.which("git"):
+            # Bolt Performance: Using shutil.which to find the path once and reusing it
+            # avoids redundant path lookups in subprocess.run.
+            git_path = shutil.which("git")
+            if git_path:
                 git_check = subprocess.run(
-                    ["git", "--version"], capture_output=True, text=True
+                    [git_path, "--version"], capture_output=True, text=True
                 )
                 git_ok = git_check.returncode == 0
                 git_details = git_check.stdout.strip() if git_ok else "Execution failed"
@@ -114,9 +115,10 @@ class SystemDiagnostics:
 
         # Check GitHub CLI
         try:
-            if shutil.which("gh"):
+            gh_path = shutil.which("gh")
+            if gh_path:
                 gh_check = subprocess.run(
-                    ["gh", "auth", "status"], capture_output=True, text=True
+                    [gh_path, "auth", "status"], capture_output=True, text=True
                 )
                 gh_ok = gh_check.returncode == 0
             else:
