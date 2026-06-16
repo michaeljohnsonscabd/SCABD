@@ -27,11 +27,14 @@ class SCABD_API:
         self.app_name = "SCABD API"
         # Performance: Using a set for O(1) endpoint lookup
         self.endpoints = {"/analyze", "/shield", "/guard/status"}
-        # Performance: Pre-allocate static error response to avoid redundant dict creation
+        # Performance: Pre-allocate static responses to avoid redundant dict creation
         self._not_found_response = {"error": "Endpoint not found", "code": 404}
+        self._status_response = {"api": self.app_name, "status": "online"}
+        self._success_template = {"status": "processed", "endpoint": None, "result": "placeholder"}
 
     def get_status(self):
-        return {"api": self.app_name, "status": "online"}
+        # Performance: Returning a copy to prevent mutation of the shared template
+        return self._status_response.copy()
 
     def handle_request(self, endpoint, data):
         """Main request handler for the API-first architecture."""
@@ -40,7 +43,10 @@ class SCABD_API:
             # Performance: Returning a copy to prevent mutation of the shared template
             return self._not_found_response.copy()
 
-        return {"status": "processed", "endpoint": endpoint, "result": "placeholder"}
+        # Performance: Use pre-allocated template to reduce object creation overhead
+        response = self._success_template.copy()
+        response["endpoint"] = endpoint
+        return response
 
 if __name__ == "__main__":
     api = SCABD_API()

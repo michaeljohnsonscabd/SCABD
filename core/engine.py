@@ -23,6 +23,8 @@ class SCABDEngine:
     def __init__(self):
         self.version = "1.0.0"
         self.is_active = False
+        # Performance: Pre-allocate static responses to avoid redundant dict creation
+        self._success_response = {"status": "success", "processed": True}
 
     def startup(self):
         print("SCABD Engine starting up...")
@@ -36,4 +38,5 @@ class SCABDEngine:
         """Core analysis logic placeholder."""
         if not self.is_active:
             raise RuntimeError("Engine must be started before analysis.")
-        return {"status": "success", "processed": True}
+        # Performance: Returning a copy to prevent mutation of the shared template
+        return self._success_response.copy()
