@@ -25,12 +25,19 @@ API-first architecture implementation using FastAPI style.
 class SCABD_API:
     def __init__(self):
         self.app_name = "SCABD API"
-        # Performance: Using a set for O(1) endpoint lookup
-        self.endpoints = {"/analyze", "/shield", "/guard/status"}
         # Performance: Pre-allocate static responses to avoid redundant dict creation
         self._not_found_response = {"error": "Endpoint not found", "code": 404}
         self._status_response = {"api": self.app_name, "status": "online"}
-        self._success_template = {"status": "processed", "endpoint": None, "result": "placeholder"}
+
+        # Performance: Pre-allocate full responses for each endpoint during init to avoid dictionary
+        # updates at runtime. Using a dictionary comprehension ensures the code remains DRY.
+        _endpoints = {"/analyze", "/shield", "/guard/status"}
+        _template = {"status": "processed", "endpoint": None, "result": "placeholder"}
+
+        self._endpoint_responses = {
+            url: {**_template, "endpoint": url}
+            for url in _endpoints
+        }
 
     def get_status(self):
         # Performance: Returning a copy to prevent mutation of the shared template
@@ -38,15 +45,12 @@ class SCABD_API:
 
     def handle_request(self, endpoint, data):
         """Main request handler for the API-first architecture."""
-        # Performance: O(1) membership check using set
-        if endpoint not in self.endpoints:
-            # Performance: Returning a copy to prevent mutation of the shared template
-            return self._not_found_response.copy()
+        # Performance: O(1) dictionary-based lookup is slightly faster than set check + copy/update
+        response = self._endpoint_responses.get(endpoint)
+        if response:
+            return response.copy()
 
-        # Performance: Use pre-allocated template to reduce object creation overhead
-        response = self._success_template.copy()
-        response["endpoint"] = endpoint
-        return response
+        return self._not_found_response.copy()
 
 if __name__ == "__main__":
     api = SCABD_API()
