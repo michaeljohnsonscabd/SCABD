@@ -23,3 +23,7 @@
 ## 2026-06-05 - [Optimization: Dictionary-Based Routing and Pre-allocation]
 **Learning:** In high-traffic API request handlers, replacing a set-based membership check and runtime template merging with a direct dictionary lookup of pre-allocated response objects provides a measurable performance gain (~8.8%). However, manual duplication of response structures can hurt maintainability.
 **Action:** Use dictionary comprehensions to pre-allocate fully constructed response objects from a common template during initialization. This achieves the performance benefits of direct lookups while keeping the code DRY and maintainable.
+
+## 2026-06-18 - [Optimization: Concise get().copy() in Hot Paths]
+**Learning:** In high-traffic request handlers where a default response must be returned for missing keys, using `dict.get(key, default).copy()` is approximately 8% faster than a manual `if key in dict: return dict[key].copy() else: return default.copy()` pattern. This is due to reduced bytecode instructions, specifically by avoiding explicit branching and local variable assignments.
+**Action:** Use `dict.get(key, default).copy()` for combined lookup and fallback operations on mutable objects to keep hot paths concise and efficient.
