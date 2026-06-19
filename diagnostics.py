@@ -22,12 +22,14 @@ class DiagnosticsReport:
     def __init__(self):
         self.checks: Dict[str, Dict] = {}
         self.timestamp = datetime.datetime.now().isoformat()
+        self._summary_cache = None
 
     def add_check(self, category: str, check_name: str, passed: bool, details: str = ""):
         """Add a diagnostic check result."""
-        if category not in self.checks:
-            self.checks[category] = {}
-        self.checks[category][check_name] = {
+        # Performance: Use setdefault() for cleaner and faster nested dict initialization.
+        # Also invalidate the summary cache since new data has been added.
+        self._summary_cache = None
+        self.checks.setdefault(category, {})[check_name] = {
             "passed": passed,
             "details": details,
             "timestamp": datetime.datetime.now().isoformat(),
@@ -60,19 +62,26 @@ class DiagnosticsReport:
 
     def _generate_summary(self) -> Dict:
         """Generate summary statistics."""
+        # Performance: Return cached summary if available to avoid redundant O(N) calculations.
+        if self._summary_cache is not None:
+            return self._summary_cache
+
         total_checks = 0
         passed_checks = 0
-        for category, checks in self.checks.items():
-            for check_name, result in checks.items():
+        # Performance: Use .values() instead of .items() as keys (category, check_name) are unused.
+        for checks in self.checks.values():
+            for result in checks.values():
                 total_checks += 1
                 if result["passed"]:
                     passed_checks += 1
-        return {
+
+        self._summary_cache = {
             "total_checks": total_checks,
             "passed_checks": passed_checks,
             "failed_checks": total_checks - passed_checks,
             "success_rate": f"{(passed_checks / total_checks * 100):.1f}%" if total_checks > 0 else "0%",
         }
+        return self._summary_cache
 
 
 class SystemDiagnostics:

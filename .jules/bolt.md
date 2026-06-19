@@ -27,3 +27,7 @@
 ## 2026-06-18 - [Optimization: Concise get().copy() in Hot Paths]
 **Learning:** In high-traffic request handlers where a default response must be returned for missing keys, using `dict.get(key, default).copy()` is approximately 8% faster than a manual `if key in dict: return dict[key].copy() else: return default.copy()` pattern. This is due to reduced bytecode instructions, specifically by avoiding explicit branching and local variable assignments.
 **Action:** Use `dict.get(key, default).copy()` for combined lookup and fallback operations on mutable objects to keep hot paths concise and efficient.
+
+## 2026-06-25 - [Optimization: Memoization and Optimized Iteration in Diagnostics]
+**Learning:** In the `DiagnosticsReport` class, generating a summary was an $O(N)$ operation that was called multiple times (for console output and JSON generation). Implementing memoization with cache invalidation ensures the calculation is only performed once per set of changes. Additionally, using `.values()` instead of `.items()` in nested loops provides a small performance boost by avoiding unused key lookups and tuple creation.
+**Action:** Use memoization for expensive state-derived calculations that are accessed multiple times. Prefer `.values()` or `.keys()` over `.items()` when the full pair is not required.
