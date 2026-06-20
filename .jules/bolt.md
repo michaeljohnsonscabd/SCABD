@@ -31,3 +31,7 @@
 ## 2026-06-25 - [Optimization: Memoization and Optimized Iteration in Diagnostics]
 **Learning:** In the `DiagnosticsReport` class, generating a summary was an $O(N)$ operation that was called multiple times (for console output and JSON generation). Implementing memoization with cache invalidation ensures the calculation is only performed once per set of changes. Additionally, using `.values()` instead of `.items()` in nested loops provides a small performance boost by avoiding unused key lookups and tuple creation.
 **Action:** Use memoization for expensive state-derived calculations that are accessed multiple times. Prefer `.values()` or `.keys()` over `.items()` when the full pair is not required.
+
+## 2026-06-26 - [Optimization: Faster Timestamps and Efficient Nested Dicts]
+**Learning:** For generating ISO-formatted timestamps without microseconds, `time.strftime("%Y-%m-%dT%H:%M:%S")` is significantly faster (~2.5x) than `datetime.datetime.now().isoformat()`. Additionally, manual membership checks for nested dictionary initialization are more efficient than `dict.setdefault(key, {})` because `setdefault` always instantiates the default object, leading to redundant memory allocation and garbage collection.
+**Action:** Prefer `time.strftime` for simple timestamp formatting in high-frequency logging or diagnostic paths. Use manual `if key not in dict` checks instead of `setdefault()` when the default value is a mutable object like a dictionary or list.
