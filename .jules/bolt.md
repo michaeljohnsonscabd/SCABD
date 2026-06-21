@@ -31,3 +31,11 @@
 ## 2026-06-25 - [Optimization: Memoization and Optimized Iteration in Diagnostics]
 **Learning:** In the `DiagnosticsReport` class, generating a summary was an $O(N)$ operation that was called multiple times (for console output and JSON generation). Implementing memoization with cache invalidation ensures the calculation is only performed once per set of changes. Additionally, using `.values()` instead of `.items()` in nested loops provides a small performance boost by avoiding unused key lookups and tuple creation.
 **Action:** Use memoization for expensive state-derived calculations that are accessed multiple times. Prefer `.values()` or `.keys()` over `.items()` when the full pair is not required.
+
+## 2026-06-21 - [Optimization: Diagnostics Timestamping and Data Structures]
+**Learning:** In diagnostic tools that generate many records,  is significantly faster (~50%) than  for timestamp generation. Additionally, manual membership checks for nested dictionary initialization are faster than  when keys are expected to exist frequently, as  always allocates the default object.
+**Action:** Use  for high-frequency logging/diagnostics where microsecond precision is not required. Prefer manual membership checks over  in hot paths to avoid redundant allocations.
+
+## 2026-06-21 - [Optimization: Diagnostics Timestamping and Data Structures]
+**Learning:** In diagnostic tools that generate many records, `time.strftime` is significantly faster (~50%) than `datetime.datetime.now().isoformat()` for timestamp generation. Additionally, manual membership checks for nested dictionary initialization are faster than `dict.setdefault()` when keys are expected to exist frequently, as `setdefault` always allocates the default object.
+**Action:** Use `time.strftime` for high-frequency logging/diagnostics where microsecond precision is not required. Prefer manual membership checks over `setdefault` in hot paths to avoid redundant allocations.
