@@ -9,7 +9,6 @@ import sys
 import subprocess
 import json
 import importlib.util
-import datetime
 import time
 import shutil
 import urllib.request
@@ -21,18 +20,22 @@ class DiagnosticsReport:
 
     def __init__(self):
         self.checks: Dict[str, Dict] = {}
-        self.timestamp = datetime.datetime.now().isoformat()
+        # Performance: time.strftime is significantly faster than datetime.datetime.now().isoformat()
+        self.timestamp = time.strftime("%Y-%m-%dT%H:%M:%S")
         self._summary_cache = None
 
     def add_check(self, category: str, check_name: str, passed: bool, details: str = ""):
         """Add a diagnostic check result."""
-        # Performance: Use setdefault() for cleaner and faster nested dict initialization.
-        # Also invalidate the summary cache since new data has been added.
+        # Performance: Manual membership check is faster than setdefault() because it avoids
+        # redundant object creation for the default value.
         self._summary_cache = None
-        self.checks.setdefault(category, {})[check_name] = {
+        if category not in self.checks:
+            self.checks[category] = {}
+
+        self.checks[category][check_name] = {
             "passed": passed,
             "details": details,
-            "timestamp": datetime.datetime.now().isoformat(),
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
         }
 
     def print_status(self, component: str, success: bool, message: str = ""):
