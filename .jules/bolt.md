@@ -31,3 +31,7 @@
 ## 2026-06-25 - [Optimization: Memoization and Optimized Iteration in Diagnostics]
 **Learning:** In the `DiagnosticsReport` class, generating a summary was an $O(N)$ operation that was called multiple times (for console output and JSON generation). Implementing memoization with cache invalidation ensures the calculation is only performed once per set of changes. Additionally, using `.values()` instead of `.items()` in nested loops provides a small performance boost by avoiding unused key lookups and tuple creation.
 **Action:** Use memoization for expensive state-derived calculations that are accessed multiple times. Prefer `.values()` or `.keys()` over `.items()` when the full pair is not required.
+
+## 2026-06-25 - [Optimization: Faster Nested Dictionary Initialization]
+**Learning:** Manual dictionary membership checks (e.g., `if key not in d: d[key] = {}`) are more efficient than `dict.setdefault()` for nested dictionary initialization because `setdefault()` always evaluates and allocates its default argument even if the key exists.
+**Action:** Prefer manual membership checks over `setdefault()` for initializing nested dictionaries in performance-sensitive paths.
