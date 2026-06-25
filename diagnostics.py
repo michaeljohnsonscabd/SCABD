@@ -26,10 +26,15 @@ class DiagnosticsReport:
 
     def add_check(self, category: str, check_name: str, passed: bool, details: str = ""):
         """Add a diagnostic check result."""
-        # Performance: Use setdefault() for cleaner and faster nested dict initialization.
+        # Performance: Manual dictionary membership checks are more efficient than
+        # setdefault() for nested dictionary initialization because setdefault()
+        # always evaluates and allocates its default argument.
         # Also invalidate the summary cache since new data has been added.
         self._summary_cache = None
-        self.checks.setdefault(category, {})[check_name] = {
+        if category not in self.checks:
+            self.checks[category] = {}
+
+        self.checks[category][check_name] = {
             "passed": passed,
             "details": details,
             "timestamp": datetime.datetime.now().isoformat(),
