@@ -47,10 +47,13 @@ class SCABD_API:
 
     def handle_request(self, endpoint, data):
         """Main request handler for the API-first architecture."""
-        # Performance: Using dict.get(key, default).copy() is more concise and avoids
-        # explicit branching and local variable assignment in the hot path,
-        # providing a measurable ~8% performance boost.
-        return self._endpoint_responses.get(endpoint, self._not_found_response).copy()
+        # Performance: In Python 3.11+, try/except leverages zero-cost exceptions and
+        # is faster than .get() for the "happy path" (hits) by avoiding function call
+        # overhead and extra lookups.
+        try:
+            return self._endpoint_responses[endpoint].copy()
+        except KeyError:
+            return self._not_found_response.copy()
 
 if __name__ == "__main__":
     api = SCABD_API()
