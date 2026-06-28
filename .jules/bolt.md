@@ -35,3 +35,7 @@
 ## 2026-06-24 - [Optimization: Dictionary .copy() vs Unpacking in Init]
 **Learning:** Using `.copy()` followed by manual key assignment is significantly faster (~45%) than dictionary unpacking (`{**template, ...}`) or union operators when pre-allocating multiple dictionaries from a template during class initialization. Unpacking creates intermediate objects and has more overhead than the optimized internal `copy()` method.
 **Action:** Prefer `.copy()` and manual assignment for performance-sensitive dictionary pre-allocation in constructors.
+
+## 2026-06-26 - [Optimization: Zero-Cost Exceptions for High-Hit-Rate Lookups]
+**Learning:** In Python 3.11 and later, "zero-cost exceptions" mean that entering a `try` block has virtually no overhead. For high-traffic dictionary lookups where the key is almost always present, a `try...except KeyError` pattern is significantly faster (~14%) than `dict.get()` because it avoids a function call and internal branching when the key exists.
+**Action:** Use `try...except KeyError` for dictionary lookups in hot paths when the "happy path" is highly likely (e.g., >95% hit rate).
