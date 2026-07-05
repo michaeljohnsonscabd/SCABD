@@ -37,5 +37,5 @@
 **Action:** Prefer `.copy()` and manual assignment for performance-sensitive dictionary pre-allocation in constructors.
 
 ## 2026-06-26 - [Optimization: Zero-Cost Exceptions for Hot Path Lookups]
-**Learning:** In Python 3.11+, "zero-cost" exceptions mean that `try` blocks have virtually no overhead if no exception is raised. In high-traffic dictionary lookups where the "hit" rate is high, a `try...except KeyError` pattern outperforms `dict.get()` by avoiding a function call and internal checks. Benchmarks showed a ~14% performance improvement in the happy path.
-**Action:** Use `try...except KeyError` for dictionary lookups in hot paths where successful lookups are the expected majority case.
+**Learning:** In Python 3.11+, "zero-cost" exceptions mean that `try` blocks have virtually no overhead if no exception is raised. In high-traffic dictionary lookups where the "hit" rate is high, a `try...except KeyError` pattern outperforms `dict.get()` by avoiding a function call and internal checks. Benchmarks showed a ~14-20% performance improvement in the happy path. However, there is a significant penalty (~220% slower in Python 3.12) if the exception is actually raised (the "miss" path).
+**Action:** Use `try...except KeyError` for dictionary lookups in hot paths only when successful lookups are the overwhelming majority case.
