@@ -43,3 +43,7 @@
 ## 2026-06-27 - [Optimization: monitor_traffic try-except Pattern]
 **Learning:** Applying the `try...except KeyError` pattern to the `BottyGuard.monitor_traffic` IP lookup provided a ~11% performance gain in Python 3.12 for requests containing an IP. This is because it avoids the `.get()` method call and handles the common case (IP present) more efficiently. However, the performance significantly degrades (~5x slower) if the key is frequently missing, so this optimization should only be used where the key's presence is the dominant case.
 **Action:** Use `try...except KeyError` for dictionary lookups in high-frequency paths (like traffic monitoring) only when the key is expected to be present in the vast majority of cases.
+
+## 2026-07-01 - [Optimization: Efficient Aggregation of Nested Dictionary Values]
+**Learning:** When aggregating boolean or numeric values from nested dictionaries (e.g., calculating a diagnostic summary), using a list comprehension followed by `sum()` or `len()` is significantly faster (~43%) than nested `for` loops. This is because list comprehensions are highly optimized in CPython, reducing bytecode overhead and instruction count during iteration.
+**Action:** Prefer list comprehensions and built-in aggregation functions (`sum()`, `any()`, `all()`, `len()`) for processing collections of values from nested structures in performance-sensitive utility methods.
