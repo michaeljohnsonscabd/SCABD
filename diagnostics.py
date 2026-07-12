@@ -71,12 +71,12 @@ class DiagnosticsReport:
         if self._summary_cache is not None:
             return self._summary_cache
 
-        # Bolt Performance: Using a list comprehension with sum() is ~43% faster than
-        # nested loops for aggregating results from nested dictionaries as it leverages
-        # C-level iteration and reduces bytecode overhead.
-        results = [res["passed"] for checks in self.checks.values() for res in checks.values()]
+        # Bolt Performance: Using results.count(True) on a list comprehension is significantly
+        # faster than sum() for boolean aggregation, as it avoids repeated truthiness
+        # checks and addition operations at the Python level.
+        results = [res["passed"] for category_checks in self.checks.values() for res in category_checks.values()]
         total_checks = len(results)
-        passed_checks = sum(results)
+        passed_checks = results.count(True)
 
         self._summary_cache = {
             "total_checks": total_checks,

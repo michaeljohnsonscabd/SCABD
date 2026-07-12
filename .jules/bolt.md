@@ -47,3 +47,11 @@
 ## 2026-07-01 - [Optimization: Efficient Aggregation of Nested Dictionary Values]
 **Learning:** When aggregating boolean or numeric values from nested dictionaries (e.g., calculating a diagnostic summary), using a list comprehension followed by `sum()` or `len()` is significantly faster (~43%) than nested `for` loops. This is because list comprehensions are highly optimized in CPython, reducing bytecode overhead and instruction count during iteration.
 **Action:** Prefer list comprehensions and built-in aggregation functions (`sum()`, `any()`, `all()`, `len()`) for processing collections of values from nested structures in performance-sensitive utility methods.
+
+## 2026-07-12 - [Optimization: count(True) vs sum() for Boolean Aggregation]
+**Learning:** In Python,  is significantly faster (~3.7x) than  for counting occurrences of  in a list. This is because  is a specialized C-level operation that avoids the overhead of repeated truthiness checks and general-purpose addition operations performed by .
+**Action:** Use  instead of  when counting boolean successes or flags in a list.
+
+## 2026-07-12 - [Optimization: count(True) vs sum() for Boolean Aggregation]
+**Learning:** In Python, `list.count(True)` is significantly faster (~3.7x) than `sum()` for counting occurrences of `True` in a list. This is because `count()` is a specialized C-level operation that avoids the overhead of repeated truthiness checks and general-purpose addition operations performed by `sum()`.
+**Action:** Use `list.count(True)` instead of `sum()` when counting boolean successes or flags in a list.
