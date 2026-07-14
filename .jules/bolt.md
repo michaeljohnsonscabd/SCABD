@@ -47,3 +47,11 @@
 ## 2026-07-01 - [Optimization: Efficient Aggregation of Nested Dictionary Values]
 **Learning:** When aggregating boolean or numeric values from nested dictionaries (e.g., calculating a diagnostic summary), using a list comprehension followed by `sum()` or `len()` is significantly faster (~43%) than nested `for` loops. This is because list comprehensions are highly optimized in CPython, reducing bytecode overhead and instruction count during iteration.
 **Action:** Prefer list comprehensions and built-in aggregation functions (`sum()`, `any()`, `all()`, `len()`) for processing collections of values from nested structures in performance-sensitive utility methods.
+
+## 2026-07-15 - [Optimization: list.count(True) vs sum() for Booleans]
+**Learning:** In Python 3.12, `list.count(True)` is approximately 34% faster than `sum()` for counting boolean values in a list. This is because `count()` uses a highly optimized C-level loop specialized for single-value matching, whereas `sum()` incurs the overhead of iterating and performing additions at the Python object level.
+**Action:** Use `list.count(True)` instead of `sum()` when counting boolean occurrences in performance-critical paths.
+
+## 2026-07-16 - [Optimization: try...except KeyError for Category Lookups]
+**Learning:** Replacing `dict.get()` with a `try...except KeyError` block for nested dictionary initialization (e.g., in `add_check`) provides a ~16% performance gain. This leverages "zero-cost exceptions" in Python 3.11+, making the "happy path" (where the key exists) faster by avoiding method call and internal check overhead.
+**Action:** Prefer `try...except KeyError` for dictionary lookups and initialization in hot paths where the key is expected to be present in the majority of cases.
