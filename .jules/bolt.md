@@ -59,3 +59,7 @@
 ## 2026-07-20 - [Optimization: Localization and Import Optimization in Diagnostics]
 **Learning:** Localizing attribute lookups (e.g., `print_status = self.report.print_status`) and using specific imports (e.g., `from datetime import datetime`) significantly reduces the overhead of nested dictionary searches in CPython's bytecode. Additionally, moving static configuration (like dependency lists) to class-level tuple constants avoids redundant object allocation. Combined, these micro-optimizations provided an ~18% speedup in the diagnostic dependency check loop.
 **Action:** Localize frequently accessed methods and attributes before high-iteration loops. Use direct imports for hot-path utilities. Prefer class constants or module-level tuples for static collections used in loops.
+
+## 2026-07-21 - [Optimization: Localized os.stat and try-except for File Checks]
+**Learning:** Using `os.path.exists()` internally wraps `os.stat` inside a Python-level function call with additional try-except handling, incurring function execution and lookup overhead. Directly calling localized `os.stat` inside a `try...except OSError` block leverages zero-cost exceptions in Python 3.11+, speeding up file-existence checks by avoiding the wrapper call.
+**Action:** Localize `os.stat` inside high-frequency file check loops and use `try...except OSError` to bypass standard Python-level function wrappers.
