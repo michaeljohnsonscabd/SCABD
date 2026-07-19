@@ -8,6 +8,7 @@ sys.path.append(os.getcwd())
 
 from protocols.omni_shield.protocol import OmniShieldProtocol
 from security.botty_guard.guard import BottyGuard
+from diagnostics.sys_check import run_all
 
 class TestSCABDFramework(unittest.TestCase):
     def test_engine_startup(self):
@@ -29,6 +30,15 @@ class TestSCABDFramework(unittest.TestCase):
         self.assertTrue(guard.monitor_traffic({"ip": "1.1.1.1", "content": "hello"}))
         self.assertFalse(guard.monitor_traffic({"ip": "2.2.2.2", "bot_signature": "detected"}))
         self.assertIn("2.2.2.2", guard.threat_db)
+
+    def test_sys_check(self):
+        """Verify internal diagnostics module executes successfully."""
+        try:
+            run_all()
+        except SystemExit as e:
+            self.fail(f"Diagnostics sys_check failed with exit code: {e}")
+        except Exception as e:
+            self.fail(f"Diagnostics sys_check raised unexpected exception: {e}")
 
 if __name__ == "__main__":
     unittest.main()
