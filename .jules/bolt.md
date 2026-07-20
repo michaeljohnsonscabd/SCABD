@@ -63,3 +63,7 @@
 ## 2026-07-21 - [Optimization: Localized os.stat for File Existence Checks]
 **Learning:** In Python 3.12, localizing the `os.stat` method and utilizing a `try...except OSError` block is significantly faster (~10%) than using `os.path.exists` for checking file presence. This improvement is achieved by bypassing high-level Python function wrapper overhead and leveraging zero-cost exceptions in the happy path.
 **Action:** Prefer localized `os.stat` inside a `try...except OSError` block over `os.path.exists` for frequent file existence checks in performance-sensitive logic.
+
+## 2026-07-22 - [Optimization: Direct Dictionary Literals for Pre-allocation]
+**Learning:** For a small, static set of known configuration/response entries, initializing a nested dictionary using a direct dictionary literal is ~32% faster than pre-allocating using a loop with `.copy()` and manual key updates. It avoids loop overhead, temporary set creation, function call overhead, and intermediate dictionary mutations.
+**Action:** Prefer direct dictionary literals over template copying loops in constructors when the keys and templates are small, static, and known beforehand.
